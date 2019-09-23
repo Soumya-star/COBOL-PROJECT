@@ -1,0 +1,188 @@
+      ***************************************************************** 00000102
+      ***    THIS PROGRAM GENERATES REPORT FOR PET RETAILER CHAIN   *** 00001002
+      ******************************************************************00002002
+        ID           DIVISION.                                          00010000
+        PROGRAM-ID.   REPORT2.                                          00020001
+        AUTHOR.       TEAM2.                                            00021000
+        DATE-WRITTEN. 20-SEP-2019.                                      00022000
+        ENVIRONMENT  DIVISION.                                          00030000
+        INPUT-OUTPUT SECTION.                                           00040000
+        FILE-CONTROL.                                                   00050000
+             SELECT SALESFILE  ASSIGN   TO AS-ESDSFILE                  00060000
+             FILE STATUS  IS WS-FS1.                                    00070000
+             SELECT MASTERFILE ASSIGN   TO KSFILE                       00071000
+             ORGANIZATION IS INDEXED                                    00072000
+             ACCESS MODE  IS DYNAMIC                                    00073000
+             RECORD KEY   IS FS-PET-ID  OF MASTERREC                    00073100
+             FILE STATUS  IS WS-FS3.                                    00074000
+             SELECT OUTFILE    ASSIGN   TO  DD2                         00080000
+             FILE STATUS  IS WS-FS2.                                    00090000
+      **********************  DATA DIVISION ****************************00091009
+        DATA         DIVISION.                                          00100000
+        FILE         SECTION.                                           00110000
+        FD   SALESFILE.                                                 00120000
+        01   SALESREC.                                                  00130000
+          05  FS-PET-ID     PIC X(3).                                   00140000
+          05  FS-DOP        PIC X(6).                                   00150000
+          05  FS-QTY        PIC 9(2).                                   00160000
+          05  FS-TP         PIC 9(5)V9(2).                              00170000
+          05  FS-LP         PIC S9(4)V9(2).                             00180000
+          05                PIC X(16).                                  00190000
+        FD   OUTFILE.                                                   00200000
+        01   OUTREC         PIC X(80).                                  00210000
+        FD   MASTERFILE.                                                00211000
+        01   MASTERREC.                                                 00212000
+          05  FS-PET-ID     PIC X(3).                                   00213000
+          05  FS-PET-TYPE   PIC X.                                      00213100
+            88 C                           VALUE '1'.                   00213200
+            88 D                           VALUE '2'.                   00213300
+            88 B                           VALUE '3'.                   00213400
+            88 F                           VALUE '4'.                   00213500
+          05  FS-BREED      PIC X(10).                                  00214000
+          05                PIC X(26).                                  00215000
+        WORKING-STORAGE SECTION.                                        00220000
+        01   HEAD.                                                      00230000
+          05                PIC X(2)       VALUE SPACES.                00240200
+          05                PIC X(6)       VALUE 'PET-ID'.              00240300
+          05                PIC X(4)       VALUE SPACES.                00240400
+          05                PIC X(5)       VALUE 'BREED'.               00240500
+          05                PIC X(4)       VALUE SPACES.                00240600
+          05                PIC X(7)       VALUE 'DATEPUR'.             00240700
+          05                PIC X(5)       VALUE SPACES.                00244000
+          05                PIC X(5)       VALUE 'PRICE'.               00245000
+          05                PIC X(5)       VALUE SPACES.                00246000
+          05                PIC X(8)       VALUE 'QUANTITY'.            00247000
+          05                PIC X(5)       VALUE SPACES.                00248000
+          05                PIC X(9)       VALUE 'PROFIT'.              00249000
+          05                PIC X(15)      VALUE SPACES.                00249100
+        01   WS-LINE        PIC X(80)      VALUE ALL '-'.               00250000
+        01   WS-DATE.                                                   00260000
+          05                PIC X(60).                                  00270000
+          05  DT            PIC X(7)       VALUE 'DATE :'.              00280000
+          05  WS-DT.                                                    00290000
+            10  WS-DDD      PIC 9(2).                                   00290100
+            10              PIC X(1)       VALUE '/'.                   00290200
+            10  WS-MMM      PIC 9(2).                                   00290300
+            10              PIC X(1)       VALUE '/'.                   00290400
+            10  WS-YYY      PIC 9(2).                                   00290500
+          05                PIC X(5).                                   00291000
+        77   WS-PET-TYPE1   PIC X(4).                                   00292000
+        01   WS-HEAD2.                                                  00300000
+          05  WS-PET-TYPE.                                              00301000
+             10             PIC X(2)       VALUE SPACES.                00302000
+             10 WS-P        PIC X(11)      VALUE 'PET-TYPE : '.         00310000
+             10 WS-PET      PIC X(5)       VALUE SPACES.                00320000
+          05                PIC X(42).                                  00340000
+          05  PG            PIC X(10)      VALUE 'PAGE NO : '.          00370000
+          05  WS-PG         PIC 9(2)       VALUE 1.                     00380000
+          05                PIC X(8)       VALUE SPACES.                00381000
+        77 WS-FS1           PIC 9(2).                                   00390000
+        77 WS-FS2           PIC 9(2).                                   00400000
+        77 WS-FS3           PIC 9(2).                                   00400100
+        77 TOT-LP           PIC 9(7)V9(2).                              00400200
+        77 WS-DOP2          PIC 9(6).                                   00400500
+        01 WS-TOT.                                                      00400600
+          05                PIC X(2)       VALUE SPACES.                00400700
+          05                PIC X(16)      VALUE 'TOTAL NUMBER OF'.     00400800
+          05 WS-PET1        PIC X(5)       VALUE SPACES.                00400900
+          05                PIC X(8)       VALUE 'SOLD : '.             00401000
+          05 WS-TOT-QTY     PIC Z(3)       VALUE ZERO.                  00401107
+          05                PIC X(48).                                  00401200
+        77 WS-TOT1          PIC 9(3)       VALUE ZERO.                  00401307
+        01 WS-PROFIT.                                                   00401400
+          05                PIC X(2)       VALUE SPACES.                00401500
+          05                PIC X(19)      VALUE 'TOTAL PROFIT/LOSS'.   00401600
+          05                PIC X(7)       VALUE SPACES.                00401700
+          05                PIC X(2)       VALUE ': '.                  00401800
+          05 WS-LPT         PIC -Z(5).9(2) VALUE ZERO.                  00401904
+          05                PIC X(41).                                  00402000
+        77 PRO              PIC S9(5)V9(2) VALUE 0.                     00402100
+        01 WS-DET.                                                      00402200
+          05                PIC X(4)       VALUE SPACES.                00402300
+          05 WS-PET-ID      PIC X(3).                                   00403000
+          05                PIC X(4)       VALUE SPACES.                00403100
+          05 WS-BREED       PIC X(10).                                  00404000
+          05 WS-DOP.                                                    00406000
+             10  WS-DD1     PIC 9(2).                                   00406100
+             10             PIC X(1)     VALUE '/'.                     00406200
+             10  WS-MM1     PIC 9(2).                                   00406300
+             10             PIC X(1)     VALUE '/'.                     00406400
+             10  WS-YY1     PIC 9(2).                                   00406500
+          05                PIC X(2)     VALUE SPACES.                  00407000
+          05 WS-TP          PIC Z(5).9(2).                              00408004
+          05                PIC X(7)     VALUE SPACES.                  00409000
+          05 WS-QTY         PIC Z(3).                                   00409104
+          05                PIC X(5)     VALUE SPACES.                  00409200
+          05 WS-LP          PIC -Z(5).9(2).                             00409304
+          05                PIC X(17)    VALUE SPACES.                  00409400
+        01 WS-FLG           PIC 9(1)     VALUE 0.                       00410100
+        PROCEDURE DIVISION.                                             00411000
+      **************** PROCEDURE DIVISION ***************************** 00412009
+        MAIN-PARA.                                                      00420000
+                PERFORM OPEN-PARA                                       00430000
+                PERFORM READ-INPUT UNTIL WS-FS1 NOT = 0                 00450000
+                CLOSE SALESFILE OUTFILE MASTERFILE                      00460000
+                STOP RUN.                                               00470000
+        CNTRL-BREAK.                                                    00480000
+                IF WS-FLG = 1                                           00490000
+                   PERFORM SUMMARY-PARA                                 00490100
+                END-IF                                                  00490200
+                MOVE 1              TO WS-FLG                           00490300
+                ACCEPT WS-DOP2      FROM DATE                           00490400
+                MOVE WS-DOP2(5:2)   TO WS-DDD                           00490500
+                MOVE WS-DOP2(3:2)   TO WS-MMM                           00490600
+                MOVE WS-DOP2(1:2)   TO WS-YYY                           00490700
+                WRITE OUTREC        FROM WS-DATE                        00490900
+                EVALUATE TRUE                                           00491000
+                     WHEN FS-PET-TYPE = '1'                             00491100
+                        MOVE 'CAT'  TO WS-PET                           00491200
+                     WHEN FS-PET-TYPE = '2'                             00491300
+                        MOVE 'DOG'  TO WS-PET                           00491400
+                     WHEN FS-PET-TYPE = '3'                             00491500
+                        MOVE 'BIRD' TO WS-PET                           00492000
+                     WHEN FS-PET-TYPE = '4'                             00493000
+                        MOVE 'FISH' TO WS-PET                           00494000
+                END-EVALUATE                                            00495000
+                MOVE WS-PET         TO WS-PET1                          00496000
+                WRITE OUTREC        FROM WS-HEAD2                       00500000
+                WRITE OUTREC        FROM HEAD                           00500100
+                WRITE OUTREC        FROM WS-LINE                        00520000
+                ADD 1               TO WS-PG.                           00530000
+        READ-INPUT.                                                     00550000
+                READ SALESFILE NEXT RECORD                              00560000
+                AT END PERFORM SUMMARY-PARA                             00560100
+                NOT AT END                                              00560200
+                  MOVE FS-PET-ID   OF SALESREC TO FS-PET-ID OF MASTERREC00560700
+                  READ MASTERFILE                                       00561000
+                  KEY IS FS-PET-ID OF MASTERREC                         00561100
+                     INVALID KEY                                        00562000
+                        DISPLAY ' YOU HAVE ENTERED A WRONG ID '         00563000
+                     NOT INVALID KEY                                    00570000
+                        IF FS-PET-TYPE NOT = WS-PET-TYPE1               00571000
+                        PERFORM CNTRL-BREAK                             00572000
+                        END-IF                                          00573000
+                        MOVE FS-PET-ID   OF MASTERREC TO WS-PET-ID      00580000
+                        MOVE FS-BREED    TO WS-BREED                    00590000
+                        MOVE FS-PET-TYPE TO WS-PET-TYPE1                00591000
+                        MOVE FS-DOP(1:2) TO WS-DD1                      00601000
+                        MOVE FS-DOP(3:2) TO WS-MM1                      00602000
+                        MOVE FS-DOP(5:2) TO WS-YY1                      00603000
+                        MOVE FS-TP       TO WS-TP                       00610000
+                        MOVE FS-QTY      TO WS-QTY                      00620000
+                        ADD  FS-QTY      TO WS-TOT1                     00621007
+                        MOVE WS-TOT1     TO WS-TOT-QTY                  00622007
+                        MOVE FS-LP       TO WS-LP                       00630000
+                        ADD  FS-LP       TO PRO                         00631000
+                        MOVE PRO         TO WS-LPT                      00632000
+                        WRITE OUTREC     FROM WS-DET                    00640000
+                  END-READ.                                             00690000
+        OPEN-PARA.                                                      00700000
+                OPEN INPUT SALESFILE MASTERFILE                         00710000
+                OPEN OUTPUT OUTFILE                                     00720000
+                DISPLAY 'OPEN STATUS' WS-FS1 ' ' WS-FS2 ' ' WS-FS3.     00730000
+        SUMMARY-PARA.                                                   00740000
+                WRITE OUTREC              FROM WS-TOT                   00750000
+                WRITE OUTREC              FROM WS-PROFIT                00760000
+                MOVE 0                    TO WS-TOT1                    00761008
+                MOVE 0                    TO PRO                        00762003
+                MOVE  SPACES              TO OUTREC.                    00770000

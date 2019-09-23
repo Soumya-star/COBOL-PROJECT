@@ -1,0 +1,138 @@
+      ******************************************************************00000123
+      ******* THIS IS A PROGRAM TO MAINTAIN PET RETAILER CHAIN *********00001023
+      ******************************************************************00002023
+        ID              DIVISION.                                       00010021
+        PROGRAM-ID.   CASESTDY.                                         00020022
+        AUTHOR.       TEAM-2.                                           00021022
+        DATE-WRITTEN. 20-SEP-2019.                                      00022022
+        ENVIRONMENT     DIVISION.                                       00030021
+        INPUT-OUTPUT    SECTION.                                        00040018
+        FILE-CONTROL.                                                   00050000
+                     SELECT MASTERFILE ASSIGN     TO KSFILE             00060022
+                     ORGANIZATION  IS INDEXED                           00070019
+                     ACCESS MODE   IS DYNAMIC                           00080019
+                     RECORD KEY    IS FS-PET-ID   OF MASTERREC          00090022
+                     ALTERNATE KEY IS FS-PET-TYPE OF MASTERREC          00091011
+                     FILE STATUS   IS WS-FS1.                           00100019
+                     SELECT TRANSACFILE ASSIGN    TO PSFILE1            00110022
+                     FILE STATUS   IS WS-FS2.                           00120019
+                     SELECT SALESFILE ASSIGN      TO AS-ESDSFILE        00130022
+                     FILE STATUS   IS WS-FS3.                           00140019
+                     SELECT UNPROFILE ASSIGN      TO PSFILE2            00150022
+                     FILE STATUS   IS WS-FS4.                           00160019
+        DATA            DIVISION.                                       00170021
+        FILE            SECTION.                                        00180018
+        COPY COPYFILE.                                                  00190020
+        WORKING-STORAGE SECTION.                                        00470000
+      ***************** WORKING-STORAGE SECTION ************************00471023
+        77 WS-FS1                            PIC 9(2).                  00480021
+        77 WS-FS2                            PIC 9(2).                  00490021
+        77 WS-FS3                            PIC 9(2).                  00500021
+        77 WS-FS4                            PIC 9(2).                  00510021
+        01 WS-DOP.                                                      00511016
+              05 WS-DD                       PIC 9(2).                  00512021
+              05 WS-MM                       PIC 9(2).                  00513021
+              05 WS-YY                       PIC 9(2).                  00514021
+        77 WS-SDATE                          PIC 9(6).                  00515021
+      ******************  PROCEDURE DIVISION  **************************00516023
+        PROCEDURE       DIVISION.                                       00520021
+        MAIN-PARA.                                                      00530000
+                   PERFORM OPEN-PARA                                    00540000
+                   CALL 'PENDRPRT'                                      00541017
+                   CALL 'REPORT2'                                       00542021
+                   STOP RUN.                                            00550000
+        OPEN-PARA.                                                      00560000
+                   CALL 'SORTTM2'                                       00561013
+                   OPEN INPUT TRANSACFILE                               00570000
+                   OPEN I-O MASTERFILE                                  00580000
+                   IF WS-FS1 NOT = 0                                    00581005
+                     DISPLAY 'MASTERFILE OPEN FAILED WITH' WS-FS1       00582005
+                   ELSE                                                 00583016
+                     DISPLAY 'MASTERFILE OPEN SUCCESSFUL'               00584005
+                   END-IF                                               00585016
+                   OPEN OUTPUT SALESFILE                                00590016
+                   IF WS-FS3 NOT = 0                                    00591016
+                     DISPLAY 'SALESFILE OPEN FAILED WITH' WS-FS3        00592016
+                   ELSE                                                 00593016
+                     DISPLAY 'SALESFILE OPEN SUCCESSFUL'                00594005
+                   END-IF                                               00595016
+                   OPEN OUTPUT UNPROFILE                                00600016
+                     IF WS-FS4 = 0                                      00610016
+                      DISPLAY 'UNPROCESSES FILE OPEN SUCCESS'           00620016
+                     ELSE                                               00630016
+                      DISPLAY 'UNPROCESSED FILE OPEN FAILED WITH' WS-FS400640016
+                     END-IF                                             00660016
+                     IF WS-FS2 = 0                                      00661016
+                      PERFORM READ-TRANSACFILE-PARA UNTIL WS-FS2 NOT = 000662008
+                     ELSE                                               00663016
+                      DISPLAY "TRANSACTION FILE NOT OPENED " WS-FS2     00664008
+                     END-IF                                             00665016
+                   CLOSE TRANSACFILE                                    00670016
+                   CLOSE MASTERFILE                                     00671016
+                   CLOSE UNPROFILE                                      00672016
+                   CLOSE SALESFILE.                                     00673016
+       READ-TRANSACFILE-PARA.                                           00680005
+                   READ TRANSACFILE NEXT RECORD                         00690016
+                     NOT AT END                                         00691016
+                       MOVE FS-PET-ID OF TRANSACREC TO FS-PET-ID OF     00692009
+                        MASTERREC                                       00693008
+                       PERFORM READ-MASTERFILE-PARA                     00700005
+                   END-READ.                                            00703016
+       READ-MASTERFILE-PARA.                                            00704005
+                   READ MASTERFILE                                      00705016
+                   KEY IS FS-PET-ID   OF MASTERREC                      00706018
+                   INVALID KEY                                          00707016
+                     DISPLAY " KEY IS INVALID READ FAILED WITH" WS-FS1  00708016
+                        MOVE 'PET ID NOT FOUND'     TO FS-REASON        00708118
+                     PERFORM WRITE-UNPROFILE-PARA                       00708205
+                   NOT INVALID KEY                                      00709016
+                     IF FS-QTY-BOUGHT OF TRANSACREC IS NUMERIC          00709116
+                      IF FS-QTY-AVAILABLE >= FS-QTY-BOUGHT OF TRANSACREC00710016
+                       IF FS-MRP      OF TRANSACREC IS NUMERIC          00711018
+                             PERFORM UPDATE-MASTERFILE-PARA             00711315
+                             PERFORM WRITE-SALESFILE-PARA               00711415
+                       ELSE                                             00711516
+                             MOVE "INSUFFICIENT DATA " TO FS-REASON     00711617
+                             PERFORM WRITE-UNPROFILE-PARA               00711715
+                       END-IF                                           00711816
+                      ELSE                                              00711916
+                             MOVE "QTY INSUFFICIENT "  TO FS-REASON     00712018
+                             PERFORM WRITE-UNPROFILE-PARA               00712115
+                      END-IF                                            00712216
+                     ELSE                                               00712305
+                             MOVE 'INSUFFICIENT DATA'  TO FS-REASON     00712418
+                             PERFORM WRITE-UNPROFILE-PARA               00712516
+                     END-IF                                             00712605
+                   END-READ.                                            00712716
+       WRITE-SALESFILE-PARA.                                            00712805
+                   MOVE FS-PET-ID OF TRANSACREC TO FS-PET-ID OF SALESREC00712916
+                   ACCEPT WS-SDATE        FROM DATE                     00713022
+                   MOVE WS-SDATE(5:2)     TO WS-DD                      00714022
+                   MOVE WS-SDATE(3:2)     TO WS-MM                      00715022
+                   MOVE WS-SDATE(1:2)     TO WS-YY                      00716022
+                   MOVE WS-DOP            TO FS-DOP OF SALESREC         00717022
+                   MOVE FS-QTY-BOUGHT OF TRANSACREC TO FS-QTY           00720016
+                   COMPUTE FS-TP = FS-MRP OF TRANSACREC * FS-QTY        00730016
+                   COMPUTE FS-LP = FS-TP - FS-CP * FS-QTY               00740016
+                   WRITE SALESREC                                       00750016
+                     IF WS-FS3 = 0                                      00760016
+                       DISPLAY 'WRITE SALESFILE SUCCESS'                00770016
+                     ELSE                                               00780016
+                       DISPLAY 'WRITE SALESFILE FAILED WITH' WS-FS3     00790016
+                     END-IF.                                            00800016
+        WRITE-UNPROFILE-PARA.                                           00810018
+                   MOVE CORR TRANSACREC   TO UNPROREC                   00820022
+                   WRITE UNPROREC                                       00830005
+                   IF WS-FS4 = 0                                        00840005
+                      DISPLAY 'WRITE UNPROFILE SUCCESS'                 00850016
+                   ELSE                                                 00860005
+                      DISPLAY 'WRITE UNPROFILE FAILED WITH' WS-FS4      00870005
+                   END-IF.                                              00880005
+        UPDATE-MASTERFILE-PARA.                                         00890005
+                   SUBTRACT FS-QTY-BOUGHT OF TRANSACREC FROM            00900005
+                            FS-QTY-AVAILABLE                            00901005
+                   REWRITE MASTERREC                                    00910005
+                   INVALID KEY DISPLAY "KEY NOT FOUND"                  00920005
+                   NOT INVALID KEY DISPLAY "RECORD REWRITTEN"           00930016
+                   END-REWRITE                                          00940005
+                   DISPLAY "REWRITE STATUS" WS-FS1.                     00950005

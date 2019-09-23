@@ -1,0 +1,94 @@
+      ******************************************************************00001004
+      ********** GENERATES REPORTS FOR UNPROCESSED FILES ***************00002004
+      ******************************************************************00003004
+        ID          DIVISION.                                           00010000
+        PROGRAM-ID.   PENDRPRT.                                         00020005
+        AUTHOR.       TEAM2.                                            00021005
+        DATE-WRITTEN. 20-SEP-2019.                                      00022006
+        ENVIRONMENT DIVISION.                                           00030000
+        INPUT-OUTPUT    SECTION.                                        00040003
+        FILE-CONTROL.                                                   00050000
+                     SELECT UNPROFILE ASSIGN TO PSFILE2                 00060000
+                     FILE STATUS IS WS-FS4.                             00070000
+                     SELECT PENDFILE ASSIGN TO PSFILE3                  00080000
+                     FILE STATUS IS WS-FS5.                             00090000
+        DATA        DIVISION.                                           00100000
+      *****************      DATA DIVISION      *********************** 00101004
+        FILE            SECTION.                                        00110003
+        FD UNPROFILE.                                                   00120000
+        01 UNPROREC.                                                    00130000
+               05 FS-PET-ID            PIC X(3).                        00140000
+               05 FS-MRP               PIC 9(4)V9(2).                   00150000
+               05 FS-QTY-BOUGHT        PIC 99.                          00160000
+               05 FS-REASON            PIC X(29).                       00170000
+        FD PENDFILE.                                                    00171000
+        01 PENDREC.                                                     00172000
+               05 FS-PID               PIC X(3).                        00173000
+               05                      PIC X(6).                        00174000
+               05 FS-MRP1              PIC 9(4).9(2).                   00175000
+               05                      PIC X(10).                       00176000
+               05 FS-QBOUGHT           PIC 99.                          00177000
+               05                      PIC X(8).                        00178000
+               05 FS-RSN               PIC X(44).                       00179000
+        WORKING-STORAGE SECTION.                                        00180000
+        77 WS-FS4                      PIC 99.                          00190000
+        77 WS-FS5                     PIC 99.                           00200000
+        77 WS-DOP1                    PIC 999999.                       00201000
+        01 WS-HEAD1.                                                    00210000
+               05                     PIC X(65).                        00220000
+               05                     PIC X(5)  VALUE 'DATE:'.          00230003
+               05 WS-DATE.                                              00240000
+                    10 WS-D           PIC 99.                           00250000
+                    10                PIC X     VALUE '/'.              00260003
+                    10 WS-M           PIC 99.                           00270000
+                    10                PIC X     VALUE '/'.              00280003
+                    10 WS-Y           PIC 99.                           00290000
+        01 WS-HEAD2.                                                    00300000
+               05                     PIC X(65).                        00310000
+               05                     PIC X(15) VALUE 'PAGE NO:01'.     00320000
+        01 WS-HEAD3.                                                    00330000
+               05                     PIC X(6)  VALUE 'PET-ID'.         00340003
+               05                     PIC X(5).                         00350000
+               05                     PIC X(3)  VALUE 'MRP'.            00360003
+               05                     PIC X(5).                         00370000
+               05                     PIC X(15) VALUE 'QUANTITY BOUGHT'.00380000
+               05                     PIC X(5).                         00390000
+               05                     PIC X(10) VALUE 'REASON'.         00400000
+               05                     PIC X(31).                        00410000
+        01 WS-HEAD4                   PIC X(80) VALUE ALL '-'.          00411002
+        PROCEDURE DIVISION.                                             00420000
+      ********************** PROCEDURE DIVISION ************************00421004
+        MAIN-PARA.                                                      00430000
+               ACCEPT WS-DOP1 FROM DATE                                 00440000
+               MOVE WS-DOP1(5:2) TO WS-D                                00450000
+               MOVE WS-DOP1(3:2) TO WS-M                                00460000
+               MOVE WS-DOP1(1:2) TO WS-Y                                00470000
+               PERFORM OPEN-PARA                                        00480000
+               PERFORM PENDFILE-WRITE-PARA.                             00480100
+               PERFORM READ-PARA UNTIL WS-FS4 NOT = 0                   00481000
+               CLOSE UNPROFILE                                          00482000
+               CLOSE PENDFILE                                           00483000
+               EXIT PROGRAM.                                            00490001
+        OPEN-PARA.                                                      00500000
+               OPEN INPUT UNPROFILE                                     00510000
+                 IF WS-FS4 NOT = 0                                      00520000
+                  DISPLAY "OPEN FAILED" WS-FS4                          00530000
+                 END-IF                                                 00540000
+               OPEN OUTPUT PENDFILE                                     00550000
+                 IF WS-FS5 NOT = 0                                      00560000
+                  DISPLAY "OPEN FAILED" WS-FS5                          00570000
+                 END-IF.                                                00580000
+        READ-PARA.                                                      00590000
+               READ UNPROFILE                                           00600000
+               NOT AT END                                               00610000
+                   MOVE FS-PET-ID     OF UNPROREC TO FS-PID             00611103
+                   MOVE FS-MRP        OF UNPROREC TO FS-MRP1            00611203
+                   MOVE FS-QTY-BOUGHT OF UNPROREC TO FS-QBOUGHT         00611300
+                   MOVE FS-REASON     OF UNPROREC TO FS-RSN             00611403
+                   WRITE PENDREC                                        00611500
+               END-READ.                                                00612000
+        PENDFILE-WRITE-PARA.                                            00613000
+                   WRITE PENDREC FROM WS-HEAD1                          00614000
+                   WRITE PENDREC FROM WS-HEAD2                          00615000
+                   WRITE PENDREC FROM WS-HEAD3                          00616002
+                   WRITE PENDREC FROM WS-HEAD4.                         00617002
