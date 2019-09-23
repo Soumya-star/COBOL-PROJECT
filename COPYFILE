@@ -1,0 +1,33 @@
+        FD MASTERFILE.                                                  00190000
+        01 MASTERREC.                                                   00200000
+              05 FS-PET-ID                   PIC X(3).                  00210000
+              05 FS-PET-TYPE                 PIC X.                     00220000
+                     88 ADD-CAT                          VALUE '1'.     00230000
+                     88 ADD-DOG                          VALUE '2'.     00240000
+                     88 ADD-BIRD                         VALUE '3'.     00250000
+                     88 ADD-FISH                         VALUE '4'.     00260000
+              05 FS-BREED                    PIC X(10).                 00270000
+              05 FS-DOP                      PIC 9(6).                  00280000
+              05 FS-CP                       PIC 9(4)V9(2).             00290000
+              05 FS-QTY-AVAILABLE            PIC 99.                    00300000
+              05                             PIC X(12).                 00300100
+        FD TRANSACFILE.                                                 00301000
+        01 TRANSACREC.                                                  00310000
+              05 FS-PET-ID                   PIC X(3).                  00320000
+              05 FS-MRP                      PIC 9(4)V9(2).             00330000
+              05 FS-QTY-BOUGHT               PIC 99.                    00340000
+              05                             PIC X(29).                 00341000
+        FD SALESFILE.                                                   00350000
+        01 SALESREC.                                                    00360000
+              05 FS-PET-ID                   PIC X(3).                  00370000
+              05 FS-DOP                      PIC 9(6).                  00380000
+              05 FS-QTY                      PIC 99.                    00390000
+              05 FS-TP                       PIC 9(5)V99.               00400000
+              05 FS-LP                       PIC S9(4)V99.              00410000
+              05                             PIC X(16).                 00411000
+        FD UNPROFILE.                                                   00420000
+        01 UNPROREC.                                                    00430000
+              05 FS-PET-ID                   PIC X(3).                  00440000
+              05 FS-MRP                      PIC 9(4)V9(2).             00450000
+              05 FS-QTY-BOUGHT               PIC 99.                    00460000
+              05 FS-REASON                   PIC X(29).                 00461000
